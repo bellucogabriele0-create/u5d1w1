@@ -45,6 +45,11 @@ public class Pizze extends Item {
     }
 
     @Override
+    public String getNome() {
+        return "pizza " + nome;
+    }
+
+    @Override
     public String toString() {
         return "Pizze{" +
                 "nome='" + nome + '\'' +

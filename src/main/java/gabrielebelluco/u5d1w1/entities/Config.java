@@ -1,12 +1,16 @@
 package gabrielebelluco.u5d1w1.entities;
 
+import com.github.javafaker.Faker;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Configuration
+@PropertySource("application.properties")
 public class Config {
 
 
@@ -40,6 +44,10 @@ public class Config {
         return new Toppings("salame", 86, 0.99);
     }
 
+    @Bean
+    public Faker getFaker() {
+        return new Faker(Locale.ITALIAN);
+    }
 
     @Bean(name = "margherita")
     public Pizze margherita() {

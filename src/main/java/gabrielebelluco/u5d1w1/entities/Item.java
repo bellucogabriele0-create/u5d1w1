@@ -3,7 +3,6 @@ package gabrielebelluco.u5d1w1.entities;
 import lombok.Getter;
 
 @Getter
-
 public abstract class Item {
     protected int calorie;
     protected double prezzo;
@@ -13,4 +12,6 @@ public abstract class Item {
         this.prezzo = prezzo;
 
     }
+
+    public abstract String getNome();
 }

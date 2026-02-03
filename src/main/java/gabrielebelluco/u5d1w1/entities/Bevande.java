@@ -20,4 +20,9 @@ public class Bevande extends Item {
                 ", calorie=" + calorie +
                 ", prezzo=" + prezzo + '}';
     }
+
+    @Override
+    public String getNome() {
+        return " benvanda : " + nome;
+    }
 }
