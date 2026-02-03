@@ -1,35 +1,57 @@
 package gabrielebelluco.u5d1w1.entities;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
+
 @Getter
-@Setter
-@NoArgsConstructor
-public class Pizze extends Menu {
+public class Pizze extends Item {
+    private String nome;
     private List<Toppings> toppings;
+    private boolean isXl = false;
 
-
-    public Pizze(String nome) {
-        super(nome, 1104, 4.99);
-        this.toppings = new ArrayList<>();
+    public Pizze(String nome, List<Toppings> ToppingList, Boolean isXl) {
+        super(1012, 4.3);
+        this.nome = nome;
+        this.toppings = ToppingList;
+        this.isXl = isXl;
+        this.calorie = setCalorie(toppings, isXl);
+        this.prezzo = setPrezzo(toppings, isXl);
 
     }
 
-    public void addTopping(Toppings topping) {
-        toppings.add(topping);
-        setPrezzo(getPrezzo() + topping.getPrezzo());
-        setCalorie(getCalorie() + topping.getCalorie());
+    public int setCalorie(List<Toppings> toppingList, boolean isXl) {
+        int tot = 1012;
+        if (toppingList != null) {
+            for (int i = 0; i < toppingList.size(); i++) {
+                tot += toppingList.get(i).getCalorie();
+            }
+        }
+        if (isXl) return (tot += (tot * 5) / 100);
+        else return tot;
+    }
+
+    public double setPrezzo(List<Toppings> t, boolean isXl) {
+        double tot = 4.30;
+        if (t != null) {
+            for (int i = 0; i < t.size(); i++) {
+                tot += t.get(i).getPrezzo();
+            }
+        }
+
+        if (isXl) return tot += (tot * 10) / 100;
+        else return tot;
     }
 
     @Override
     public String toString() {
         return "Pizze{" +
-                "toppings=" + toppings +
-                '}' + super.toString();
+                "nome='" + nome + '\'' +
+                ", toppings=" + toppings +
+                ", isXl=" + isXl +
+                ", prezzo=" + prezzo +
+                ", calorie=" + calorie +
+                '}';
     }
 }
