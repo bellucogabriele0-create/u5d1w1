@@ -1,6 +1,7 @@
 package gabrielebelluco.u5d1w1.entities;
 
 import com.github.javafaker.Faker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -121,5 +122,19 @@ public class Config {
         return new Menu(pizzeList, bevandeList, toppingsList);
     }
 
+    @Bean("Tavolo1")
+    Tavolo getTavolo1(@Value("${coperto}") double coperto) {
+        return new Tavolo(1, 5, true, coperto);
+    }
+
+    @Bean("Tavolo2")
+    Tavolo getTavolo2(@Value("${coperto}") double coperto) {
+        return new Tavolo(2, 4, true, coperto);
+    }
+
+    @Bean("Tavolo3")
+    Tavolo getTavolo3(@Value("${coperto}") double coperto) {
+        return new Tavolo(3, 8, true, coperto);
+    }
 
 }

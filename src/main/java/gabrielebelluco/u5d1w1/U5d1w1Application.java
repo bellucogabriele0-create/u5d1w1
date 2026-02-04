@@ -12,14 +12,13 @@ public class U5d1w1Application {
 
     public static void main(String[] args) {
         SpringApplication.run(U5d1w1Application.class, args);
-
-
         AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(U5d1w1Application.class);
 
-        Menu menu = ctx.getBean("menu", Menu.class);
+        Menu menu = (Menu) ctx.getBean("menu");
         menu.printMenu();
-        ctx.close();
-
+        System.out.println(menu);
+    }
+}
 // HO AVUTO UN PROBLEMA CON IL MAIN SE FACCIO RUNNARE CON IL MAIN VISTO A LEZIONE ALLORA MI DARà UN ERRORE DEL TIPO:
 
 //Exception in thread "main" org.springframework.beans.factory.BeanCreationException: Error creating bean with name
@@ -35,9 +34,6 @@ public class U5d1w1Application {
 //		m.printMenu();
 //		ctx.close();
 //	}
-    }
-
-}
 //     ApplicationContext ctx = SpringApplication.run(U5d1w1Application.class, args);
 //
 //
@@ -45,5 +41,11 @@ public class U5d1w1Application {
 //        menu.printMenu();
 //        System.out.println(menu);
 //        SpringApplication.run(U5d1w1Application.class, args);
-/// /
 //
+//
+//
+//        AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(U5d1w1Application.class);
+//
+//        Menu menu = ctx.getBean("menu", Menu.class);
+//        menu.printMenu();
+//        ctx.close();

@@ -11,6 +11,7 @@ public class Tavolo {
     private int numeroTavolo;
     private int numeroCoperti;
     private boolean isFree = true;
+    private double prezzoCoperto;
 
 
     public void occupato() {
@@ -24,4 +25,6 @@ public class Tavolo {
     public boolean CopMax(int coperti) {
         return isFree && coperti <= numeroCoperti;
     }
+
+
 }

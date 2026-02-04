@@ -2,9 +2,9 @@ package gabrielebelluco.u5d1w1.runners;
 
 import com.github.javafaker.Faker;
 import gabrielebelluco.u5d1w1.entities.Menu;
-import gabrielebelluco.u5d1w1.entities.Ordine;
 import gabrielebelluco.u5d1w1.entities.Tavolo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -17,6 +17,17 @@ public class MyRunner implements CommandLineRunner {
     private double prezzoCoperto;
 
     @Autowired
+    @Qualifier("Tavolo1")
+    private Tavolo tavolo1;
+
+    @Autowired
+    @Qualifier("Tavolo2")
+    private Tavolo tavolo2;
+
+    @Autowired
+    @Qualifier("Tavolo3")
+    private Tavolo tavolo3;
+    @Autowired
     private Menu menu;
 
     @Autowired
@@ -24,12 +35,10 @@ public class MyRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Tavolo ferrero = new Tavolo(1, 7, true);
-        Ordine ordine = new Ordine(prezzoCoperto, 7, ferrero);
-        ordine.aggiungiAllOrdine(menu.getPizzeList().get(0));
-        ordine.aggiungiAllOrdine(menu.getBevandeList().get(1));
+        System.out.println(tavolo1);
+        System.out.println(tavolo2);
+        System.out.println(tavolo3);
 
 
-        ordine.printScontrino();
     }
 }

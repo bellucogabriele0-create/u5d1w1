@@ -16,32 +16,17 @@ public class Pizze extends Item {
         this.nome = nome;
         this.toppings = ToppingList;
         this.isXl = isXl;
-        this.calorie = setCalorie(toppings, isXl);
-        this.prezzo = setPrezzo(toppings, isXl);
 
     }
 
-    public int setCalorie(List<Toppings> toppingList, boolean isXl) {
-        int tot = 1012;
-        if (toppingList != null) {
-            for (int i = 0; i < toppingList.size(); i++) {
-                tot += toppingList.get(i).getCalorie();
-            }
-        }
-        if (isXl) return (tot += (tot * 5) / 100);
-        else return tot;
+    @Override
+    public int getCalorie() {
+        return super.getCalorie() + this.getToppings().stream().mapToInt(Toppings::getCalorie).sum();
     }
 
-    public double setPrezzo(List<Toppings> t, boolean isXl) {
-        double tot = 4.30;
-        if (t != null) {
-            for (int i = 0; i < t.size(); i++) {
-                tot += t.get(i).getPrezzo();
-            }
-        }
-
-        if (isXl) return tot += (tot * 10) / 100;
-        else return tot;
+    @Override
+    public double getPrezzo() {
+        return super.getPrezzo() + this.getToppings().stream().mapToDouble(Toppings::getPrezzo).sum();
     }
 
     @Override

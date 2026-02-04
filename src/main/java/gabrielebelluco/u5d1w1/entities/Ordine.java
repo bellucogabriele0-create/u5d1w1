@@ -1,18 +1,29 @@
 package gabrielebelluco.u5d1w1.entities;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class Ordine {
-    private List<Item> items = new ArrayList<>();
+    private int numeroOrdine;
+    private StatoOrdine stato;
+    private int numCoperti;
+    private LocalTime orarioAcquisto;
+    private List<Item> ordineProdotti;
     private Tavolo tavolo;
-    private int coperti;
-    private double prezzoCoperto;
 
-    public Ordine(double prezzoCoperto, int coperti, Tavolo tavolo) {
-        this.prezzoCoperto = prezzoCoperto;
-        this.coperti = coperti;
+    public Ordine(int coperti, Tavolo tavolo) {
+        Random rndm = new Random();
+        if (tavolo.getNumeroCoperti() <= numCoperti)
+            throw new RuntimeException("numero coperti più alto dei posti");
+        this.numeroOrdine = rndm.nextInt(100, 10000);
+        this.stato = StatoOrdine.IN_CORSO;
+        this.numCoperti = numCoperti;
+        this.orarioAcquisto = LocalTime.now();
+        this.ordineProdotti = new ArrayList<>();
         this.tavolo = tavolo;
+
     }
 
     public Ordine(Tavolo tavolo, int coperti, double costoCoperto) {
@@ -23,27 +34,34 @@ public class Ordine {
         if (coperti > tavolo.getNumeroCoperti()) {
             throw new IllegalArgumentException("Troppi coperti per questo tavolo");
         }
-
-        this.tavolo = tavolo;
-        this.coperti = coperti;
-        this.prezzoCoperto = costoCoperto;
-        tavolo.occupato();
     }
 
     public void aggiungiAllOrdine(Item item) {
-        items.add(item);
+        this.ordineProdotti.add(item);
     }
 
     public double getScontrino() {
-        double scontrino = items.stream().mapToDouble(Item::getPrezzo).sum();
-        return scontrino + (coperti * prezzoCoperto);
+        return this.ordineProdotti.stream().mapToDouble(Item::getPrezzo).sum() + (this.tavolo.getPrezzoCoperto() * this.numCoperti);
+
+    }
+
+    public void setPronto() {
+        this.stato = StatoOrdine.PRONTO;
+    }
+
+    public void setServito() {
+        this.stato = StatoOrdine.SERVITO;
     }
 
     public void printScontrino() {
-        System.out.println("al Tavolo " + tavolo.getNumeroTavolo());
-        items.forEach(i -> System.out.println(i.getNome()));
-        System.out.println("il totale è di " + getScontrino() + "$");
-
+        System.out.println("id ordine " + this.numeroOrdine);
+        System.out.println("stato " + this.stato);
+        System.out.println("numero coperti " + this.numCoperti);
+        System.out.println("ora acquisizione " + this.orarioAcquisto);
+        System.out.println("numero tavolo " + this.tavolo.getNumeroTavolo());
+        System.out.println("Lista: ");
+        this.ordineProdotti.forEach(System.out::println);
+        System.out.println("totale " + this.getScontrino());
 
     }
 }
