@@ -139,11 +139,11 @@ successiavamente prende quelli con dipendenze e controlla quali hanno lo stesso 
 In questa lezione vedremo la relazione con il DB che ci verrà facilitato dal jpa che ci farà tutto lui, direttamente
 dallo spring initializer come per l'aggiunta di lombok attraverso le dependencies (Spring Data Jpa),(PostgreSQL Driver).
 successivamente dovremo collegarci al database prima di tutto creiamo il progetto in pgAdmin, poi aggiungiamo in
-application.properties
 spring.datasource.url=jdbc:postgresql://localhost5432/u5d4
-spring.datasource.user=postgres
+spring.datasource.username=postgres
 spring.datasource.password=1234
-spring.datasource.
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=update
 dopodichè runniamo per vedere gli errori e dopo se non ci sono errori andremo a creare le entities come sempre,
 aggiungendo le varie annotazioniii  come @Entity, @Table etc. successivamente i classici attributi, con
 @Id
