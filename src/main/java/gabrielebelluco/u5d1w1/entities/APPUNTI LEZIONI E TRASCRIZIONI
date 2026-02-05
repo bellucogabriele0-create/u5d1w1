@@ -1,0 +1,187 @@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 1 Spring INTRO@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+spring è il nostro framework di riferimento
+per poter capire come scrivere del codice per del web server allora sarà essenziale capire come funziona spring.
+Spring ci consente di automattizzare tutti quei passaggi dove c'è una richiesta,leggerne il contenuto,
+interpretarlo, fornirci oggetti e poi darci delle risposte e può farne anche più di una di queste azioni alla volta
+e questo permetterà a noi di focalizzarci sulla business logic ovvero ciò che deve davvero fare l'app delegando le cose
+ripetitive a spring anche per esempio alle cose relattive alla sicurezza dell'app ci possiamo servire di spring security
+anche per il discorso della manipolazione dei dati dal db usufruiremo di spring. Parlando di una delle cose più
+ricorrenti che un programmatore deve fare è quella di creare oggetti come per esempio nell'ultima buildweek abbiamo
+fatto circa 10 dao e nel main di conseguenza neabbiamo dovuti creare altre tanti, e se gli stessi dao servissero anche
+in altri punti dell'app allora li dovremmo rifarne altre tanti quindindi diventerebbe un bel lavorone ripettitivo,
+inoltre le app che abbiamo fatto fin ora, vivono solo nel main ma la verità è che la logica viene utilizzata in più
+e più parti, quindi quello stesso dao avrei bisogno di usarlo in più parti, ecco che qua ci viene in soccorso Spring
+che creerà oggetti per noi quindi io delego questo compito a spring, io prima creo i dao come classe e gli oggetti
+glieli lascio creare a lui pronti all'avvio, attenzione però lui non mi andrà a creare l'user aldo giovanni e giacomo etc.
+no si intende quegli oggetti che sono strumenti come i dao o come il faker per esempio, oppure poter rendere disponibile
+il dao senza dover istanzire più volte un'oggetto grazie a un'annotazione che ci consentirà di renderlo diponibile
+in tutta l'applicazione e questo ragionamento dei dao si potrà applicare a tante altre classi.
+quindi con un approccio dichiarattivo io gli dico cosa voglio e spring dietro ha una serie di algoritmi che producono il
+risultato ovvero la creazione di quegli strumenti citati prima, ma saprà creare oggetti non solo prima dell'avvio
+dell'app ma anche durante l'esecuzione come per esempio quando abbiamo un web server e mi arriverà una richiesta
+spring creerà un'oggetto per quella richiesta e me lo metterà a disposizione in maniera tale che io riesca a leggere
+quello che c'è nel payload negli headers e quindi noi saremo in grado di accedere alla richiesta http e in una
+maniera simile saremo in grado di capire come lui riesce a creare delle risposte, anche l'entityManager e factory
+verranno fatti da spring e non da noi.
+SPRING BOOT
+Spring boot e spring sono correlati ma non sono la stessa cosa che ci permetterà di scrivere ancora meno codice, perchè
+spring necessita di una sorta di settaggio per essere uttilizzato invece spring boot ci evita tutta questa parte creando
+una sorta di default che vada bene in generale sempre sovrascrivibile ma già pronto ad essere visualizzato (un po come i
+colori primary danger secondary warning di react).
+Per iniziare un progetto spring esistono due metodi da browser o da intellij ma saranno identici a differenza che da
+intellij servirà un plugin, per fare ciò da browser andiamo su Spring initialzr, e configuriamo le scelte che ci servono
+ovvero:  maven / java / 4.0.2 / gropu:gabrielebelluco / artefact: u5d1w1 / pack jar / config : Properties/ Java : 21
+e nelle dependencies possiamo scegliere dei pacchetti da aggiungere come spring web, spring data, postgres, lombok,
+security e altri successivamente facciamo generate e ci scaricherà uno .zip che dovremo aprire con intellij.
+invece da intellij con il plugin è con "start spring booot project" e i passaggi saranno identici al browser.
+BEANS
+tutta la parte di delegazione degli oggetti parte dai beans i beans sono degli oggetti gestiti da spring come i
+dao, ma ci sono anche altri esempi come abbiamo già detto, come le richieste http che sono rappresentate da un oggetto
+che noi esploreremo, ne leggiamo il contenuto, quindi immaginiamoci un'oggetto di una certa classe che conterrà la
+richiesta che è appena arrivata e chi crea quell'oggetto/Strummetno è spring e noi lo utilizziamo. stessa cosa per i dao
+prendiamo tutti i dao di cui abbiamo bisogno e diaciamo a spring, spring all'avvio li crea e li mette in una sorta di
+scattolone (CONTAINER) in cui all'interno ci saranno tutti questi oggetti e noi prendiamo quello che ci serve, e la
+cosa interessante è che spring ad es. per i dao non creerà moltecipli oggetti ma ne creerà uno solo utilizzabile in
+tutta l'applicazione, perchè un dao è semplicemente un oggetto con dei metodi quindi non è che deve essere diverso ogni
+volta che lo utilizzamo.
+Spring Container
+quello che abbiamo chiamato contenitore prima in realtà ha più nomi, ma in generale è chiamato Container e in spring
+abbiamo due nomi principali BeanFactory e l'ApplicationContext(che è quello utilizzato da noi perchè è funzionale).
+quindi immaginiamoci come se in una parte dell'applicazione troviamo questo container chiamato Spring Application Context
+con all'interno tutti i beans all'interno. Quando noi scriviamo il codice decidiamo quali classi far gestire a spring
+e quali no e tutte le classi che noi scegliamo di far gestire a Spring all'avvio dell'applicazione crea lo scattolone
+e ci mette tutti i beans/oggetti all'interno (un po come la cassetta degli attrezzi detta prima con all'interno tutti i
+dao già pronta) e non importerà se noi siamo nel main o in qualsiasi altro punto noi potremmo accedere
+all'applicationcontext e prendere gli oggetti che ci servono. e il nostro compito sarà quello di capire come fare a
+mettere dentro il context ciò che noi vogliamo metterci all'interno e dare le istruzioni per poter sfruttare gli oggetti,
+e per fare ciò ci sono diversi metodi, invece gli altri oggetti creati da noi saranno oggetti classici creati da noi e
+saranno fuori dal context. ci sono 3 diverse strade per istruire spring:
+1 dichiarazione xml: (non più utilizzato)
+2 Configurazione basata su Java: (utilizzato grazie a @Configuration @bean)
+3 Configurazione basata su annotazioni ()
+Noi utilizzeremo un' approccio dichiarattivo noi dichiariamo cosa vogliamo e lui realizzerà cio che vogliamo.
+XML
+la dichiarazione con xml avrà una struttura del genere:
+<beans> qui ci andrà tutta l'intestazione
+  <bean (qui ci andrà l'id) id="personBean" (qui ci andrà la classe a qui ci riferiamo ) class="com.example.Person" >
+    <property (e qui gli attributi per il suo costruttore) name="name" value="don joe"/>
+    <property name="age" value="30"/>
+  </beans>
+</beans>
+logicamente all'interno si possono creare anche più bean basta aggiungerli all'interno del "beans" ma possono essere
+anche collegati tra di loro grazie all'autowire
+  <bean id="orderBean" class="com.example.Order" autowire="byType" >
+quindi questo gli consentirà di creare anche oggetti complessi perchè avrà una dipendenza verso un'altro.
+Quindi una volta creati i Bean li leggiamo dall'ApplicationContext, ci sono più modi per leggerli dal context
+2 CONFIGURAZIONE BASATA SU JAVA:
+questo approccò farà le stesse cose ma con java quindi ci permetterà di scrivere codice controllato da intellij, o
+aggiungere anche logiche come funzioni cicli, essa però prevede la creazione di una classe che si chiamerà classe di
+configurazione al cui interno metteremo dei metodi i quali mi torneranno dei bean quindi all'interno metterò delle
+istruzioni che spiegerà a spring come crearmi quel particolare bean, notiamo che nel'immagine ci sono due
+annotazioni principali esse sono @Configuration e @Bean.
+@Configuration si mette a livello di classe non di metodo per far capire a spring che questa è una classe di
+configuration altrimenti sarebbe una classe come un'altra
+@Bean si mette a livello di metodo e se ne mettiamo più di uno dovremmo metterlo a ognuna altrimenti viene ignorato.
+con una struttura come questa:
+@Bean
+pulblic Person personBean () {
+     Person person = new person();
+     person.setName("don Joe");
+     person.setAge(30);
+     Return person;
+}
+quindi le graffe che vediamo qua ci consentiranno di creare anche della logica molto complessa l'importante è che ci
+ritorni person come abbiamo qua, allo stesso modo posso far tornare liste, stringhe, numeri, array quello che voglio
+quindi non solo l'oggetto singolo come in questo caso ma anche cose più semplici o più complesse.
+Un altro caso è questo:
+@Bean
+public Customer customerBean() {
+    Person person = new person();
+    person.setName("don Joe");
+    return customer;
+}
+
+@Bean
+public Order orderBean(Customer customer){
+return new Order (customer)
+}
+qua creiamo una dipendenza perchè gli stiamo dicendo che per creare il bean di tipo Order deve creare un bean di
+tipo Customere dentro le graffe gli diremo come si creeranno gli ordini e l'ordine ha un parametro customer che deriva
+dallo stesso parametro del metodo, però come farà a capire chi scegliere come customer? ciò che succede dietro le quinte
+è che spring rileva la classe di configurazione, sceglie i metodi con i @bean poi li mette nel container,
+successiavamente prende quelli con dipendenze e controlla quali hanno lo stesso nome delle dipendenze, prende in questo
+ caso il customer e glielo passa  f
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+In questa lezione vedremo la relazione con il DB che ci verrà facilitato dal jpa che ci farà tutto lui, direttamente
+dallo spring initializer come per l'aggiunta di lombok attraverso le dependencies (Spring Data Jpa),(PostgreSQL Driver).
+successivamente dovremo collegarci al database prima di tutto creiamo il progetto in pgAdmin, poi aggiungiamo in
+application.properties
+spring.datasource.url=jdbc:postgresql://localhost5432/u5d4
+spring.datasource.user=postgres
+spring.datasource.password=1234
+spring.datasource.
+dopodichè runniamo per vedere gli errori e dopo se non ci sono errori andremo a creare le entities come sempre,
+aggiungendo le varie annotazioniii  come @Entity, @Table etc. successivamente i classici attributi, con
+@Id
+@GeneretedValue(strategy = GenerationType.IDENTITY) @Column(name = profile_img" nullable = false)
+successivamente costruttori getter e setter e i toString in caso non volessimo il setter sull'id
+@Setter(AccessLevel.NONE) e lo stesso per il @Getter nella password. successivamente aggiungiamo una seconda classe con
+ relazione ManyToOne di BlogPost  mettiamo tutti gli attributi costruttore, getter e setter dei tostring e runniamo
+ dinuovo per vedere il DB. a questo punto serviranno i dao che saranno divisi in due parti grazie anche alle repository
+che si occuperà di tutti i metodi base per interagire con la tabella, invece per la tutela del codice come eccezioni
+ecceterà verrà utilizzata la classe service che si occupa di eseguire controlli eccezioni log, e anche service sarà un
+component ma con annotazione @Service quindi la struttura adesso sarà per ogni tabella un service e una repository che
+sostituiranno i nostri dao. inoltre la Repo non è una classe ma un'interface che estende la
+JpaRepository<classe entità di riferimento, tipo di dato dell'id>, questo è ciò che ci consentirà di creare tutto il CRUD
+base come save, findById, findAll e possiamo aggiungere anche altri metodi custom come queries etc.
+il prossimo passo del progetto è quello di creare un package delle repositories al cui interno aggiungeremo un interface
+con annotazione @Rpeository ed extends JpaRepository<User, Long>, a questo punto possiamo aggiungere un runner per
+vedere tutti i metodi che volevamo, iniziamo con implements ComandLineRunner{} al cui interno
+private final UserRepository userRepository successivamente creiamo il costruttore con l'@Autowired e nel
+@Override public void run  (String... args) throws Exception {} aggiungiamo il faker e un User con userRepository.save
+dopo il print vedremo due user all'interno.
+successivamente andiamo a creare un package Service con all'interno una classe BlogService e servirà da intermediario
+che serve per aggiungere ulteriori logiche controlli log etc. durante le interazioni con db,poichè i metodi nella repository
+non ci sono. quindi ad esempio nelle repo si salva e basta mentre le service ci serve per controlla re che l'email sia
+unica, che la password rispetti determinati criteri anche ad esempio aggiungere un log di avvenuto salvattaggio può
+essere fatta dal service o anche la gestione delle eccezioni custom è un dovere del service e non della repo. per esempio
+per un metodo saveUser iniziamo aggiungendo il costruttore con l'@Autowired per per implementare le Repository all'interno.
+successivamente si possono fare diversi passaggi come
+1 contolla che l'email non sia già in uso
+2 effettua altri controlli di validazioni sui dati inseriti
+if (newUser.getName().length() < 2) throw new validationException ("il nome non può essere più corto di 2 caratteri")
+3 aggiungi ulteriori dati server genereted
+4 salvo effettivamente l'utente tramite repository
+this.usersRepository.save(newUser);
+5 log di avvenuto salvataggio: S.o.p("l'uttente è stato salvato correttamente " + newUser.getSurname());
+successiavamente aggiungiamo un try catch nel runner per le eccezzioni di id doppi, dopo possiamo fare dei metodi per modificare e poi anche per eliminare un user
+questo lo possiamo fare grazie al Userservice creando il metodo con public void  findByIdAndUpdate (long userId, User update){}
+al cui interno:
+
+mettiamo User found = this.findById(userId);
+
+
