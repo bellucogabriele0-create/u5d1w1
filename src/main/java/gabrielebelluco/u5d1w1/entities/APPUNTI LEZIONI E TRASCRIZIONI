@@ -181,7 +181,7 @@ in caso avessimo più oggetti dello stesso tipo potremo avere dei problemi di am
 del nome come abbiamo detto prima i bean possono essere letti per nome, e per ciò c'è una ragione, inanzitutto il nome
 del bean se non specificato in un altro modo è il nome del metodo in questo caso ad esempio è "getFEStudent()"  e nel
 main scriveremo FrontendStudent fes2 = ctxgetBean("getFEStudent"); il problema qua è che lui mi tornerà un object quindi
-bisognerà castare altrimenti FrontendStudent fes2 = ctxgetBean("getFEStudent", FrontendStudent.class); e qua il
+bisognerà castare altrimenti FrontendStudent fes2 = ctx.getBean("getFEStudent", FrontendStudent.class); e qua il
 risultato è sempre lo stesso dunque
 FrontendStudent{} Student {name='Aldo' , surname='Baglio'}  Ciao sono lo studente BACKEND e la risposta alla domanda è...blablbalba
 oppure possiamo specificare il nome direttamente al bean così:
@@ -213,7 +213,6 @@ ora per rendere più chiaro il concetto ci creiamo un'altra entity di nome Inter
 in modo da poter fare i colloqui a tutti gli studenti, in questo modo:
 public class Interviewer {
   private Student student;
-
 
   public Interviewer (Student student) {
   this.student = student;
@@ -250,10 +249,105 @@ public Interviewer getInterviewer(Student, student) {
 }
 ecco che quà ci darà un errore perchè troverà tre studenti (Aldo, getBEStudent,getFSStudent) perchè c'è di mezzo il
 polimorfismo, QUINDI è MEGLIO EVITARE.
-RICAPITOLANDO ciò che possiamo riassumere da quanto visto fin'ora è che 
+RICAPITOLANDO ciò che possiamo riassumere da quanto visto fin'ora è che possiamo creare dei bean nella classe di
+configurazione quindi riempire il container (scattolone) estrarrli quando abbiamo bisogno di utilizzarli con il get bean
+però ci sono tutte quelle dinamiche da tenere in considerazione nel senso non possiamo dichiarare dei bean uguali e
+pretendere che attraverso il tipo lui riesca a capire come distinguerli, non possiamo non dichiarare un bean che è
+necessario per un'altro bean, mancanze, se ci manca il FullstackStudent ci da errore, in caso di parametro errato ci
+da errore perchè trova 3 risultati, e per questo il primary è una delle annotazioni che si possono dare per evvitare
+che si cada nell'errore, nel senso che mettendo come in questo caso ci sono tre Student e ne mettiamo uno come @Primary
+risolverò l'ambiguità in questo modo:
+@Bean
+@Primary
+public FullstackStudent getFSStudent(String name) {
+ return new FullstackStudent (name, "Poretti");
+}
+Dunque l'annotazione primary dice in caso di ambiguità preferisci lui, come se fosse una sorta di default.
+BEAN SCOPE
+cosa è uno scope? lo scope determina il comportamento di questi bean.
+ IL SINGLETON: significa che quando all'interno di un'applicazione viene creato un'oggetto, quell'oggetto è unico singolo
+l'unica coppia che esiste all'interno di quell'applicazione è quello il primo ad essere creato, ulteriori tentativi di
+creazione falliscono o verrà restituito sempre lo stesso oggetto, sempre la stessa locazione di memoria, quindi di default
+tutti i bean sono Singleton, infatti quando abbiamo creato i due oggetti identici fes e fes2 in realtà sono lo stesso
+essendo singleton, a meno di non cambiare lo scope da singleton a qualcos'altro. questa caratteristica del singleton è
+molto  importante perchè quando abbiamo ad esempio i DAO non ha senso crearsi gli oggetti DAo ogni volta che li richiedo,
+ne basterà uno per tutta l'applicazione, quindi il fattore che siano singleton mi crea il dao e ogni volta che devo usare
+il dao non è che lo ricrea mi da sempre un riferimento allo stesso oggetto perchè non ha senso crearne una copia e sarebbe
+anche uno sprecco di spazio, ciò avrà anche dei contro nel senso che se avessimo dei setter in un esempio del genere:
+FrontendStudent fes = ctx.getBean( FrontendStudent.class);
+S.o.p(fes);
+fes.setName("Mario");
+FrontendStudent fes2 = ctxgetBean("getFEStudent", FrontendStudent.class)
+S.o.p(fes2);
+succederà questo, primo passaggio: estraggo il bean FrontendStudent dallo scattolone che si chiama "Aldo"-> stampo e in
+console avrò FrontendStudent{} Student {name='Aldo' , surname='Baglio'} -> setto il nome a "Mario" -> estraggo dinuovo
+il nome con il getBean dallo scattolone aldo ma non è più aldo è Mario questo per far capire che sono entrambi un'oggetto
+solo ma ricchiamato più volte in modi diversi. questo può essere cambiato ma non è detto che ci sia utile, ad esempio
+scope PROTOTYPE è L'OPPOSTO di Singleton cioè ogni volta che faccio getbean mi viene creato una coppia dell'oggetto
+dunque a meno che non sia necessario è meglio singleton ad esempio
+@Bean
+@Scope("prototype")
+ public FrontendStudent getFEStudent() {
+ return new frontendStudent("Aldo", "Baglio");
+ }
+questo farà in modo che stamperà
+FrontendStudent{} Student {name='Aldo' , surname='Baglio'}
+FrontendStudent{} Student {name='Aldo' , surname='Baglio'}
+percè nel primo passaggio ora è aldo ma non ristampiamo dopo il settaggio del nome e nel secondo stampiamo aldo però essendo
+PROTOTYPE creerà un'altro oggetto aldo baglio.
+quindi scope è un'annotazione opzionale se non è specificato è singleton di default,
+SINGLETON:in tutta l'applicazione esiste un'unica coppia dell'oggetto. Ogni volta che faccio getBean() mi torna sempre
+stesso oggetto
+PROTOTYPE: ogni volta che uso getBean mi torna una nuova copia dell'oggetto.
+LOMBOK:
+è uno strummento da non uttilizzare in azienda ma utile per prototipi o codice di prova quando questo ci aiuta con le
+varie annotazioni a creare per esempio
+@Data: crea equals, getter e setter, toString, hashCode per tutti i campi della classe
+@Getter, @Setter : generano i getter e setter
+@NoArgsConstructor e @AllArgsConstructor: Generano costruttori sia vuoto che pieno
+@ToString: genera un metodo toString per la classe (problemi di bidirezionalità)
+@EqualsAndHashCode: genera metodi equals e hashCode per la classe.
+@Builder: fornisce un modello di progettazione del tipo Builder per creare oggetti immutabili in modo fluente.
+Nel caso in cui noi volessimo non settare l'UUID come molto spesso capita, dobbiamo mettere sopra il campo desiderato
+per esempio @Setter(AccessLevel.NONE)
+
+RIASSUNTO
+Spring è il framework di riferimento per lo sviluppo Java. Il suo scopo principale è automatizzare i compiti ripetitivi
+(gestione richieste HTTP, sicurezza, connessione al database) per permettere allo sviluppatore di concentrarsi solo sulla Business Logic.
+Approccio Dichiarativo: Non scriviamo noi il "come" fare le cose (es. istanziare oggetti), ma diciamo a Spring "cosa"
+vogliamo, e lui lo realizza tramite i suoi algoritmi.
+Spring Boot: Una versione "semplificata" di Spring che elimina la configurazione manuale noiosa tramite impostazioni
+di default (auto-configuration), rendendo l'app pronta all'uso immediatamente.
+Spring Initializr: Lo strumento (web o plugin IDE) per generare lo scheletro del progetto scegliendo dipendenze
+(Lombok, Web, Data JPA, ecc.).
+CONCETTO DI BEAN E CONTAINER
+In Spring, non creiamo più manualmente gli "strumenti" del mestiere (come i DAO o i Service) nel main.
+Bean: È un oggetto gestito da Spring. Sono "strumenti" (DAO, Faker, EntityManager), non dati volatili (non sono gli
+utenti "Aldo, Giovanni e Giacomo").
+Spring Container (ApplicationContext): Immaginalo come una "cassetta degli attrezzi". All'avvio dell'app,
+Spring crea tutti i Bean necessari e li mette lì dentro.
+Dependency Injection: Se un Bean A ha bisogno del Bean B (es. un Interviewer ha bisogno di uno Student), Spring vede
+la dipendenza e "inietta" automaticamente l'oggetto richiesto.
+COME ISTRUIRE SPRING
+Sebbene esistesse l'XML, oggi usiamo le classi di configurazione Java:
+@Configuration: Indica che la classe contiene le "istruzioni" per creare i Bean.
+@Bean: Si mette sopra un metodo. Il valore restituito dal metodo diventa un Bean nel Container.
+Gestione Ambiguità: Se abbiamo più Bean dello stesso tipo (es. tre tipi di Student):
+@Primary: Indica a Spring quale scegliere di default in caso di dubbio.
+Nome del Bean: Possiamo recuperare un Bean specifico per nome (di default è il nome del metodo).
+BEAN SCOPE: SINGLETON E PROTOTYPE
+Il comportamento (scope) dei Bean è fondamentale per la gestione della memoria:
+Singleton (Default): Esiste una sola istanza in tutta l'app. Ogni getBean() restituisce lo stesso oggetto.
+Per DAO, Service, Controller (oggetti senza stato interno variabile).
+Attenzione al Singleton: se modifichi una proprietà di un Bean Singleton in un punto dell'app, quella modifica
+sarà visibile ovunque, perché l'oggetto è lo stesso
+
+Prototype: Viene creata una nuova istanza ogni volta che viene richiesto il Bean.
+Per Oggetti che mantengono dati specifici per un'operazione e non devono essere condivisi.
 
 
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 2 Spring@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 
 
