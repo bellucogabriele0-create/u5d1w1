@@ -348,6 +348,111 @@ Per Oggetti che mantengono dati specifici per un'operazione e non devono essere 
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 2 Spring@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+in questa lezione continueremo con gli argomenti iniziati nella scorsa, nella scorsa lezione abbiamo parlato dei Bean,
+della classe di configurazione, di cui ne faremo un rieppilogo e poi vedremo in questa lezione del terzo mettedo
+annunciato nella scorsa lezione ovvero il 3° metodo per dichiarare i beans, o meglio per dichiararli e chiedere a
+spring che crei degli oggetti che quella uttilizzata più di tutte, in più andremo a capire ulteriori caratteristiche
+dei progetti spring, utilizzeremo uno specifico file di configurazione che sarà utile per la connessione al DB, non utilizzeremo
+più il persistence XML, in favore di una cosa più semplice, e poi vedremo anche a livello teorico di altri benefici
+dell'approccio spring in termine di codice scritto, perchè spring in base ai suoi principi ci aiuta a scrivere codice
+fatto meglio.
+STRUTTURA PROGETTO
+la struttura del progetto ci permette di avere anche altre due parti importanti della nostra applicazione come ad esempio
+la cartella Resources e anche test
+La parte dei test sembra molto simile alla parte main ma in realtà è stata creata per la parte dei test dell'applicazione
+che vedremo nella prossima lezione, invece in questa lezione vedremo la parte di resources
+RESOURCES
+Questa cartella resources con un solo file che è application.properties che contiene un'unica voce che è il nome del file per ora.
+a è un file fondamentale per poter inserire delle informazioni per il nostro progetto dichiarandole con chiave valore.
+ad esempio
+postgress.url=jdbc:postgrsql://localhost:5432
+postgress.username=postgres
+postgress.password=1234
+e abbiamo usato questo esempio per connettersi al db quindi non si userà più l'xml. inoltre il file applicatio.properties
+viene usato come file da "lasciare segreto" perchè contenente password come per esempio l'apikey che sarebbe meglio mettere
+qua. Però mettiamo il caso che io voglio recuperare una variabile dal application properties devo usare un'annotazione
+@Value("${postgress.password}") ma non basta dovrò aggiungere anche @PropertySource("application.properties") per
+leggere determinati valori perchè noi potremmo avere anche più file dentro la cartella resources
+nel main abbiamo una anntazione @SpringBootApplication al cui interno abbiamo tante altre annotazioni una delle quali è
+@ComponentScan questa annotazione permette, quando andremmo a creare dei componenti, all'avvio di controllare anche quei
+componenti nuovi che andremmo a creare.
+mettiamo che aggiungiamo nell'application.properties
+admin.name= Claudio Bisio
+se io volessi andare a leggere questo valore dalla classe di configurazione cosa devo fare devo creare un bean del tipo:
+@Bean
+public String getAdminName (String adminName) {
+return adminName
+}
+se io runnassi così senza mettere ne @Value ne @PropertySource succederebbe che lui richiede una stringa e la stringa è
+se stesso quindi una sorta di loop ma è un ERRORE, invece se runnassi solo con @Value così:
+@Bean
+public String getAdminName (@Value("admin.name")String adminName) {
+return adminName
+}
+l'applicazione si avvierà ma non come vorremmo ma stamperà una cosa del genere:
+FullstackStudent{} Student {name=admin.name , surname='Poretti'}
+Perchè abbiamo inniettato la stringa "admin.name" nella dipendenza che cerca una stringa (@Bean
+                                                                                          @Primary
+                                                                                          public FullstackStudent getFSStudent(String name) {
+                                                                                           return new FullstackStudent (name, "Poretti");
+                                                                                          })
+che verrà poi uttilizzata come nome del FullstackStudent e quindi quando stampiamo stamperemo admin.name poretti. invece
+se mettessimo
+@Bean
+public String getAdminName (@Value("${admin.name}")String adminName) {
+return adminName
+}
+e il sotto il @Configuration @PropertySource("application.properties") ecco che ora stamperà correttamente il campo con
+FullstackStudent{} Student {name=Claudio Bisio , surname='Poretti'}.
+questo è anche un trucco per poter leggere le application.properties con il @Value dato che nel main non si
+può uttilizzare direttamente allora a questo punto con il getBean si potranno recuperare i valori del a.p
+IoC & DI
+Spring cerca di promuovere del codice fatto in una certa maniera, del codice che segue dei principi ch eportano a scrivere
+codice fatto bene, quindi sarebbe bene quando si programma fare in modo che il codice non funzioni solo oggi ma che
+riesca a metterci le mani domani senza impazzire quindi ci sono dei principi architteturali che ci portano a fare le cose
+fatte bene, questo porta tanti benefici anche in termini di test ad esempio, oppure n caso serva sostituire una parte di
+funzionalità di codice con un'altra con facilità e senza impazzire, quindi il codice potrà funzionare bene ma non basta,
+questo è possibile grazie all'Inversion of Control (IoC) e la Dependency Injection(DI). prima però bisogna capire il
+LOOSE COUPLING (ACCOPPIAMENTO DEBOLE) e TIGHT COUPLING (ACCOPPIAMENTO FORTE), tra i due ciò che dobbiamo raggiungere
+è il DEBOLE ciò vuol dire che ci sono elementi che si collegano tra di loro ma non si intersecano, invece nel TIGHT gli
+elementi sono intersecati. l'accopiamento è quando due elementi hanno una dipendenza tra di loro, sono accoppiati, le
+differenze stanno nel fatto che quello forto porta, in caso di modifiche, a dover cambiare il codice anche nelle altre,
+come un'effetto domino 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
