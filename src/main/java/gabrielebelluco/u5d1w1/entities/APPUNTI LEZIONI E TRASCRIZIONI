@@ -110,11 +110,147 @@ tipo Customere dentro le graffe gli diremo come si creeranno gli ordini e l'ordi
 dallo stesso parametro del metodo, però come farà a capire chi scegliere come customer? ciò che succede dietro le quinte
 è che spring rileva la classe di configurazione, sceglie i metodi con i @bean poi li mette nel container,
 successiavamente prende quelli con dipendenze e controlla quali hanno lo stesso nome delle dipendenze, prende in questo
- caso il customer e glielo passa  f
+caso il customer e glielo passa. quindi a questo punto abbiamo dato istruzioni per creare gli oggetti usare il metodo
+crearlo e meterlo dentro il container per poterlo mettere a disposizione, a disposizione dell'applicationContext ctx
+per poter accedere a quegli oggetti e poi possiamo prendere gli oggetti di tipo person, customer, order etc.
+dunque facciamo degli esempi, creiamo una cartella entities con una classe padre e student e più classi figlie BackendStudent
+FrontendStudent e FullstackStudent
+ quindi creiamo una classe astratta padre Student
+public abstract class Student {
+    @Setter(AccessLevel.NONE) // Serve per eliminare il setter automatico su un campo specifico
+ 	private UUID id;
+	private String name;
+	private String surname;
+
+	public abstract void answerQuestion(); // che ci darà un S.o.p diverso l'uno dall'altro
+}
+nelle classi figlie invece creiamo il costruttore delle con il super,il toString e l'Override del answerQuestion così:
+	@Override
+	public void answerQuestion() {
+		System.out.println("Ciao sono lo studente BACKEND e la risposta alla domanda è...blablbalba");
+	}
+	@Override
+	public String toString() {
+		return "BackendStudent{} " + super.toString();
+	}
+aggiungiamo anche una classe config nel package config che è una classe "speciale " all'interno dell'applicazione.
+Essendo annotata da @Config, questo significa che al suo interno potremo inserire N metodi, ognuno dei quali conterrà
+le "istruzioni" per generare un Bean, ovvero per chiedere Spring di gestire lui quell'oggetti ed inserirlo
+nell'application Context (lo "scattolone"), per creare un nuovo @Bean aggingiamo un metodo con annotazioni @Bean per
+esempio
+@Bean
+public int getNumber() {
+  return 42;
+  }
+
+  @Bean
+  public String getAdminName() {
+  return "ajeje";
+  }
+ @Bean public FrontendStudent getFEStudent() {
+ return new frontendStudent("Aldo", "Baglio");
+ }
+@Bean public backendStudent getBEStudent(){
+return new BackendStudent ("Giovanni", "Storti")
+}
+@Bean
+public FullstackStudent getFSStudent() {
+ return new FullstackStudent ("Giacomo", "Poretti");
+}
+
+e ora nel main andiamo a scrivere la lettura BEANS da CONTEXT, seguendo questi passaggi:
+1.Ottengo un riferimento al context
+2. Tramite metodi .getBean dell'oggetto context possso leggere i bean dallo scattolone e posso usarlicome oggetti normalissimi
+1. =
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(U5d1w1Application.class);
+all'interno delle tonde si da la classe di riferimento che viene passata al costruttore "AnnotationConfigApplicationContext"
+e poi lui mi torna un'oggetto ctx. Infatti adesso nel passaggio 2. se scriviamo ctx.getBean abbiamo due modalità di
+recuperare il bean attraverso la prima è tramite nome e l'altra è tramite classe la differenza sta nel tipo di ritorno
+se uttilizzo tramite nome mi torna un'object generico il quale poi dovrò fare un cast, invece l'altra è passando il tipo
+della classe lui me la tipizzerà già con il tipo giusto
+_
+FrontendStudent fes = ctx.getBean(frontendStudent.class);
+S.o.p(fes);
+_
+e questo nel terminale mi stamperà: FrontendStudent{} Student {name='Aldo' , surname='Baglio'}
+
+oppure possiamo fare anche: fes.answerQuestion
+questo per far capire che dunque diventa un'oggetto utilizzabile. quindi fin'ora nel main non abbiamo mai creato
+oggetti nel main questo perchè viene auto generato da spring messo dentro ctx e poi da ctx posso estrarre ciò che serve
+in caso avessimo più oggetti dello stesso tipo potremo avere dei problemi di ambiguità, allora lì entra in gioco il discorso
+del nome come abbiamo detto prima i bean possono essere letti per nome, e per ciò c'è una ragione, inanzitutto il nome
+del bean se non specificato in un altro modo è il nome del metodo in questo caso ad esempio è "getFEStudent()"  e nel
+main scriveremo FrontendStudent fes2 = ctxgetBean("getFEStudent"); il problema qua è che lui mi tornerà un object quindi
+bisognerà castare altrimenti FrontendStudent fes2 = ctxgetBean("getFEStudent", FrontendStudent.class); e qua il
+risultato è sempre lo stesso dunque
+FrontendStudent{} Student {name='Aldo' , surname='Baglio'}  Ciao sono lo studente BACKEND e la risposta alla domanda è...blablbalba
+oppure possiamo specificare il nome direttamente al bean così:
+ @Bean(name= "aldo")
+ public FrontendStudent getFEStudent() {
+ return new frontendStudent("Aldo", "Baglio");
+ }
+dunque opzionalmente posso nominare un bean, altrimenti verrà utilizzato il nome del metodo.
+ora mettiamo il caso che il bean in ConfigClass abbia un parametro del tipo:
+@Bean
+public FullstackStudent getFSStudent(String name) {
+ return new FullstackStudent (name, "Poretti");
+}
+a questo punto nel main se noi creassimo un oggetto del tipo :
+FullstackStudent fss = ctx.getBean(FullstackStudent.class);
+S.o.p(fss);
+nel terminale ci stamperà
+FullstackStudent{} Student {name='Ajeje' , surname='Poretti'}
+questo perchè prima ho definito un bean di tipo stringa che mi torna ajeje riga 146 che gli abbiamo passato come parametro
+quindi lui la cercherà nello scattolone e se lo trova lo passa altrimenti darà un'errore. invece se ci fosserò più di un
+bean di tipo String noi dobbiamo essere chiari con quale dei due vogliamo passare
+ @Bean
+ public String getAdminName2() {
+ return "Claudio"
+ }
+ ma lo vediamo meglio dopo e ciò che
+abbiamo fatto passando il parametro è chiamata DIPENDENZA.
+ora per rendere più chiaro il concetto ci creiamo un'altra entity di nome Interviewer e gli passiamo come attributo Student
+in modo da poter fare i colloqui a tutti gli studenti, in questo modo:
+public class Interviewer {
+  private Student student;
 
 
-
-
+  public Interviewer (Student student) {
+  this.student = student;
+  }
+  public void askQuestion() {
+  S.o.p("Ciao "+ student.getName() + ", rispondi alla seguente domanda.... #####"
+  this.student.answerQuestion();
+  }
+}
+quindi con questo esempio vediamo che c'è una connessione tra una classe e un'altra, tra interviewer e student e anche
+questa è una dipendenza  e significa che quando creiamo un'interviewer deve esistere già uno studente non può essere
+creato dopo lo studente, un po come le relazioni tra le varie tabelle, ad esempio non posso creare l'abbonamente se
+non c'è l'utente. Dunque cosa succede se io creo un bean di tipo Interviewer nella ConfigClass? del tipo:
+@Bean
+public Interviewer getInterviewer(FullstackStudent, student) {
+ return new Interviewer(student);
+}
+questo esempio è molto simile a quello creato nel bean dove passavamo String name. dunque per testare andiamo nel main
+e creiamo Interviewer nello scattolone in questo modo:
+Interviewer i = ctx.getBean(Interviewer.class);
+i.askQuestion();
+e ciò stamperà:
+ Ciao Claudio, rispondimi allaseguente domanda...#####
+ Ciao sono lo studente FULLSTACK e la risposta alla domanda è....blablabla
+ciò che succede nella console è che Interviewer grazie a @Bean viene creato come oggetto, prende uno student,
+ma prende quello  indicato dal tipo "FullstackStudent", ne abbiamo solo uno che prende il nome da getAdmin2
+(getInterviewer<getFSStudent<getAdmin2)
+quindi un'altra delle cose importanti di spring è che non solo crea oggetti ma riesce anche a collegarli uno all'altro
+dunque in questo ultimo esempio noi avremmo il parametro Student che è una dipendenza del Bean Interviewer.
+ora facciamo l'esempio che invece di passare FullstackStudent passiamo Student così:
+@Bean
+public Interviewer getInterviewer(Student, student) {
+ return new Interviewer(student);
+}
+ecco che quà ci darà un errore perchè troverà tre studenti (Aldo, getBEStudent,getFSStudent) perchè c'è di mezzo il
+polimorfismo, QUINDI è MEGLIO EVITARE.
+RICAPITOLANDO ciò che possiamo riassumere da quanto visto fin'ora è che 
 
 
 
