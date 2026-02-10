@@ -407,8 +407,8 @@ FullstackStudent{} Student {name=Claudio Bisio , surname='Poretti'}.
 questo è anche un trucco per poter leggere le application.properties con il @Value dato che nel main non si
 può uttilizzare direttamente allora a questo punto con il getBean si potranno recuperare i valori del a.p
 IoC & DI
-Spring cerca di promuovere del codice fatto in una certa maniera, del codice che segue dei principi ch eportano a scrivere
-codice fatto bene, quindi sarebbe bene quando si programma fare in modo che il codice non funzioni solo oggi ma che
+Spring cerca di promuovere del codice fatto in una certa maniera, del codice che segue dei principi che portano a scrivere
+codice fatto bene, quindi sarebbe bene, quando si programma, di fare in modo che il codice non funzioni solo oggi ma che
 riesca a metterci le mani domani senza impazzire quindi ci sono dei principi architteturali che ci portano a fare le cose
 fatte bene, questo porta tanti benefici anche in termini di test ad esempio, oppure n caso serva sostituire una parte di
 funzionalità di codice con un'altra con facilità e senza impazzire, quindi il codice potrà funzionare bene ma non basta,
@@ -416,8 +416,104 @@ questo è possibile grazie all'Inversion of Control (IoC) e la Dependency Inject
 LOOSE COUPLING (ACCOPPIAMENTO DEBOLE) e TIGHT COUPLING (ACCOPPIAMENTO FORTE), tra i due ciò che dobbiamo raggiungere
 è il DEBOLE ciò vuol dire che ci sono elementi che si collegano tra di loro ma non si intersecano, invece nel TIGHT gli
 elementi sono intersecati. l'accopiamento è quando due elementi hanno una dipendenza tra di loro, sono accoppiati, le
-differenze stanno nel fatto che quello forto porta, in caso di modifiche, a dover cambiare il codice anche nelle altre,
-come un'effetto domino 
+differenze stanno nel fatto che quello forte porta, in caso di modifiche, a dover cambiare il codice anche nelle altre,
+come un'effetto domino, invece il LOOSE COUPLING dice le classi continuano a comunicare come hanno sempre fatto però
+sono collegati in maniera debole, e ciò consente di modificare un elemento senza modificare gli altri o a sostituire
+un'elemento senza sostituire gli altri, oppure testarne uno senza dover testare gli altri, magari facendo gli
+altri 4 gli altri finti come magari in caso di dover testare gli ordini posso fare uno per pagamenti finti. quindi
+sarebbe bene fare in modo che il cambiamento di un campo non deve / dovrebbe far cambiare gli altri. Mettiamo questo esempio:
+public classs OrderProcessor {
+  private PaymentGateaway paymentGateway = new PayPalGateway(); // accopiamento stretto
+  public void processOrder(Order order) {
+  // business logic
+   paymentGateway.processPayment(order.getTotalAmount());
+   }
+}
+vediamo in questo esempio dove abbiamo questa classe paymentGateway dove creiamo un'nuovo oggetto paymentGateway che
+poi quando facciamo l'ordine verrà utilizzato processPayment, gli diamo il totale e fa il pagamento. Questo è un'esempio
+di accoppiamento stretto perchè se un giorno decidiamo di cambiare paypal con un altra noi dovremmo andare a cambiare
+anche la classe OrderProcessor e poi anche alle altre connesse con essa invace con questo esempio:
+
+public interface PaymentGateway {
+void processPayment(double amount);
+}
+public class PayPalGateway implements PaymentGateway {
+public void processPayment(double amount); // implementazione specifica di Paypal
+}
+public classs OrderProcessor {
+  private PaymentGateaway paymentGateway; // accopiamento debole
+  public OrderProcessor(PaymentGateaway paymentGateway) {
+  this.paymentGateway = paymentGateway;
+  }
+  public void processOrder(Order order) {
+  // business logic
+   paymentGateway.processPayment(order.getTotalAmount());
+   }
+}
+in questo caso abbiamo PaymentGateway che è un interfaccia però in questo caso dipenderà dall'interfaccia, questo
+vuoldire che dipende dall'interfaccia, e non c'è il new quindi non è la classe OrderProcessor a crearsi la dipendenza
+bensì gli viene passato tramite parametro, da fuori. questo sembra una piccolezza ma fà davvero la differenza, e così
+io posso aggiungere un'altro metodo di pagamento, dovrò fare semplicemente StripeGateway (chiamaiamo così la classe) che
+implementa l'interfaccia PaymentGateway w gli potrò passare gli oggetti all'order all'OrderProcessor quindi posso
+aggiungere  funzionalità di quel tipo senza toccare OrderProcessor una cosa del genere:
+public class StripeGateway implements Payments PaymentGateway {
+public void process Payment(double amount) {// implementazione specifica de Stripe
+  }
+}
+public class orderProcessor{
+  private StripeGateaway stripeGateway; // accopiamento debole
+  public OrderProcessor(StripeGateaway stripeGateway) {
+  this.stripeGateway = stripeGateway;
+  }
+}
+questo ci permette di aggiungere anche molte nuove funzionalità di quel tipo senza toccare l'OrderProcessor, perchè dipende
+interfaccia quindi dalle strazioni questo lascia delle porte aperte che ci evitano i vincoli dell'altro metodo. Invece qua
+dipendiamo da un'interfaccia quindi con il polimorfismo riusciamo a passare più metodi di pagamento, in più non è OrderProcessor
+a crearsi l'attributo ma gli viene passato da fuori quindi noi possiamo riutilizzare questo OrderProcessor con più metodi
+di pagamento, potendo crearli anche in futuro senza dover rivedere tutta la classe OrderProcessor. Dunque parlando di classi
+una regola importante è quella di evitare far creare all'interno della classe stessa, se ho già la classe a e ho bisogno
+si oggetti della classe b non li creerò io ma li farò arrivare da fuori, ancora meglio sarebbe dipendere da classi astrate o
+interfacce, perchè così mi lascio aperte delle porte. avremmo classi più indipendenti tra loro, OrderProcessor ha la minima
+e indispensabile conoscenza degli altri moduli delle altre classi, quindi si influenzano poco a vicenda, anche avere poche
+dipendenze dovrebbe essere un obbiettivo, e utilizzare interfacce o classi astratti è meglio che dipendere da implementazioni
+concrete.
+IoC è un principio di progettazione che si trova anche in frontEnd e nei software in generale. l'Inversion of Control
+ovvero inversione di controllo vuol'dire che il flusso di programma e in particolar modo la creazione degli oggetti non
+è più gestita dal programmatore ma bensì dal framework, come abbiamo già detto Spring crea e gestisce oggetti, gestisce
+istanziazione, configurazione, lifecycle, e il fatto dell'accoppiamento debole più o meno lo abbiamo già visto nella
+ scorsa lezione quando abbiamo scritto @Bean
+                                       public Interviewer getInterviewer(Student, student) {
+                                        return new Interviewer(student);
+                                       }
+perchè qua Interviewer non si sta creando la sua dipendenza ma gliela passiamo noi da fuori con student, e spring si
+occuperà di innietare quella dipendenza quando deve creare l'oggetto Interviewer, ha il controllo, gestisce la dipendenza
+cojn gli oggetti e innieta le dipendenze e da li la dependency injection(DI). Quindi questa IoC viene implementato a livello
+pratico da ciò che viene detto DI la tecnica concreta che realizza l'IoC cioè una classe invece di crearsi le proprie
+dipendenze con un setter o con un costruttore ad esempio come abbiamo fatto qua
+@Bean
+public Interviewer getInterviewer(Student, student) {
+return new Interviewer(student);
+}
+io dichiaro un bean che ha bisogno di uno Student e lui va a cercarmi uno student questa è DI lui che va il cerca di un
+qualcosa di compatibile.
+
+
+COMPONENT E AUTOWIRED
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
