@@ -514,8 +514,56 @@ di essere più veloci perchè non dovrò più fare come nella lezione passata:
  return new frontendStudent("Aldo", "Baglio"); //SI NTENDE QUESTA PARTE
  }
 ma semplicemente metterò l'annotazione sulla classe Interviewer, Student etc. questo però ha dei contro perchè io non
-potrò più personalizzare questi oggetti in nessuna maniera, perchè è come una modalità fullautomatica
+potrò più personalizzare questi oggetti in nessuna maniera, perchè è come una modalità fullautomatica, quindi non
+utilizzeremo il Component quando richiedono della customizzazione nostra come nel @Bean che ho messo sopra, dove ho messo
+dei valori  ("Aldo", "Baglio"), con l'approccio a component non potrò farlo,quindi quando uso @Configuration non è detto
+io non debba usare anche l'altro, non è che sono rivali, però quando abbiamo bisogno della tipologia automatica utilizzeremo
+l'approccio a Component mentre quando abbiamo bisogno di personalizzazioni in più, eseguire delle logiche. quindi l'approccio
+a component si sposa bene in situazioni in cui dobbiamo  creare un'oggetto singleton e dove non c'è bisogno di tante
+customizzazioni ma vogliamo avere nello scattolone come i dao.
+I COMPONENT è  una classe che verrà istanziato all'avvio dell'applicazione. Spring cercherà inoltre di gestire l'inniezione
+delle dipendenze quando creiamo questa classe perchè se questa classe ha delle dipendenze, perchè se questa classe ha
+delle vuol'dire che per creare l'oggetto devo avere anche gli altri di dipendenze quindi lui si dedicherà a cercare
+nello scattolone se ci sono gli altri li innieterà.
 
+@Component
+public class Book {
+private String title;
+private String author;
+
+  public Book() {
+     this.title= "Default Title"
+     this.author= "Default author"
+  }
+
+  public String getTitle() {
+   return title;
+  }
+  public String getAuthor() {
+   return author;
+  }
+}
+Ecco vediamolo su questo esempio, metto semplicemente @Component sopra la classe e lui creerà un oggetto di tipo book
+con valori di default perchè è automatizzata perchè io non posso scegliere in fase di creazione di quali valori passargli
+quindi non è che io posso passargli dei parametri e poi sceglierò io nella fase di creazione dell'oggetto cosa passargli
+non usiamo il new, non usiamo noi il costruttore ma lo userà sping, quindi tra le parentesi qua public Book() o gli passo
+le dipendenze che entrano nel giro del suoi BEAN altrimenti no, quindi potrò pure passargli due stringhe come parentesi ma
+lo cercherà tra i bean quindi il limite sarà evidente. uno degli errori molto comuni è che se noi mettessimo un component
+in un package che non è figlio del package principale tutto ciò non averrà.
+Dunque quali sono le differenze tra Component e la classe di Configurazione?
+si usa COMPONENT quando ho bisogno di componenti che devono essere creati in maniera autoattizata, invece
+la classe di configurazione si userà quando avrò bisogno di tanta configurazione
+Entrambi finiranno nello scattolone, per entrambi deleghiamo la creazione a spring e per entrambi lasciamo il controllo
+su quegli oggetti QUINDI SONO BEAN IN ENTRAMBI LE SITUAZIONI, PERCHè UN BEAN è UN OGGETTO GESTITO DA SPRING, quindi la
+classi di configurazione la userò quando ho bisogno di seguire delle logiche complesse quando uso component, quindi
+sarebbe meglio usare la classe di configurazione in quel caso, apro le graffe e ci faccio quello che voglio, un'altra
+un'altro punto a favore della classe di configurazione invece il fatto di dover creare i bean a partire da altre
+librerie esterne come il FAKER, semplicemente per farlo dovrò fare un Bean del genere:
+@Bean
+public Faker getFaker() {
+ return new Faker(Locale.ITALIAN)
+}
+ e così faccendo avrò il FAker in tutta l'app
 
 
 
