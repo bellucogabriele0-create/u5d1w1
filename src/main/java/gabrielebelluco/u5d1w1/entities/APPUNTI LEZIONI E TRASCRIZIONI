@@ -499,8 +499,22 @@ qualcosa di compatibile.
 
 
 COMPONENT E AUTOWIRED
-
-
+il discorso appena fatto di IoC e Di si collegano con il discorso di COMPONENT E AUTOWIRED
+I COMPONENT sono un concetto che ci permette di, sfruttando l'IoC, ovvero il controllo degli oggetti lo avrà sping, come
+abbiamo fatto con i BEAN nella scorsa lezione, si può ottenere lo stesso risultato con i component.
+L'AUTOWIRED invece vedremo che sarà una tecnica che serve per implementare la DI.
+QUando pate l'applicazione spring c'è anche tutto il discorso di COMPONENTSCAN che viene effettuato, ovvero che all'avvio
+rileverà se ci sono dei COMPONENT dunque se ci sono alcune classi che vengono annotate dall'annotazione component, in caso
+venga rilevato succede che la classe verrà istanziata, quindi non servirà neanche fare una classe di configurazione, io ho
+una classe la marchio come component e spring inizierà a istanziare una classe iniziando da quello, questo ci permetterà
+di essere più veloci perchè non dovrò più fare come nella lezione passata:
+@Bean
+@Scope("prototype")
+ public FrontendStudent getFEStudent() {
+ return new frontendStudent("Aldo", "Baglio"); //SI NTENDE QUESTA PARTE
+ }
+ma semplicemente metterò l'annotazione sulla classe Interviewer, Student etc. questo però ha dei contro perchè io non
+potrò più personalizzare questi oggetti in nessuna maniera, perchè è come una modalità fullautomatica
 
 
 
