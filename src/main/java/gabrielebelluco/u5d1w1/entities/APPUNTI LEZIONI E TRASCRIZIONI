@@ -563,69 +563,162 @@ librerie esterne come il FAKER, semplicemente per farlo dovrò fare un Bean del 
 public Faker getFaker() {
  return new Faker(Locale.ITALIAN)
 }
- e così faccendo avrò il FAker in tutta l'app
+ e così faccendo avrò il Faker in tutta l'app, nella pratica un altro punto dove ci serve il component sono i dao, oppure
+ per ciò che vediamo più avanti sono i controller, i service e altri che vedremo più avanti invece qua invece di fare 10 DAO come
+bean si mette component e i dao sono già pronti, negli esempi che abbiamo fatto fin ora un'component può essere l'interviewer
+e per renderlo component dovrò @Componet sopra la classe e anche senza il bean nella config class ma solo con:
+Interviewer i = ctx.getBean(Interviewer.class);
+i.askQuestion();
+il funzionerà tutto come prima, perchè quello che succede ora è che con component spring scansiona tutte le classi, vede
+se ci sono delle classi, trova Interviewer crea l'oggetto interiviewer, quindi quando nel main lo richiediamo "Interviewer.class"
+spring lo prenderà e prenderà lo studente Claudio Bisio perchè ha una dipendenza e tramite la DI, il componente è fatto così ora:
+@Component
+public class Interviewer{
+private Student student
+public Interviewer(Student student) {
+   this.student = student
+  }
+}
+quindi Interviewer con dipendenza Student vuol dire che prende il FullstackStudent che prende il bean getadminname()
+che prende da Application.properties il valore admin.name="Claudio Bisio".
+Quando abbiamo parlato di inniezione delle dipendenze, non avviene solo in un modo automatico come abbiamo visto ma
+avviene anche grazie a eltre tre metodi. questi tre modi sono la CONSTRUCTOR INJECION che è quella che abbiamo appena
+visto con student in Interviewer, dove noi dobbiamo solo passarlo e il resto avviene in maniera automatica, ma esistono
+casi dove non vogliamo quel parametro lì come parametro del costruttore allora possiamo fare una SETTER INJECTION questa
+userà il il setter su quella dipendenza e non avrà bisogno di un costruttore, quindi riuscirà a settare una dipendenza
+tramite un setter. Oppure la FIELD INJECTION ovverò quella sugli attributi quindi non faccio ne costruttore ne Setter ma
+metto direttamente un'attributo come dipendenza dunque se noi togliessimo il costruttore da Interviewer e mettessimo AUTOWIRED
+funzionerebbe.
+AUTOWIRED
+autowired è un'annotazione che si occupa di richiedere in maniera esplicita a spring per favore innietami la dipendenza
+facciamo un esempio di un setter:
+public class OrderService{
+ private PaymentGateaway paymentGateaway;
+
+ @Autowired
+ public void setPaymentGateaway(PaymentGateaway paymentGateaway) {
+   this.paymentGateaway = paymentGateaway
+ }
+}
+ questo non è molto comune ma serve nei casi dove non vogliamo avere un costruttore con quella dipendenza perchè magari
+ l'oggetto e creato a mano in modo tradizionale, però quando usiamo Spring vogliamo che lo innieta la dipendenza. Ovviamemte
+ il setter mi permette anche di modificare la dipendenza in un secondo momento.
+il terzo caso che è il più semplice ma anche quello dove dovremmo fare più attenzione è quello in cui ho un'attributo
+e basta e con @AUTOWIRED nell'attributo succede che la dipendenza viene innietata e funziona come se avessimo il
+costruttore perchè richiedo a spring di innietare la dipendenza però questo è anche pericoloso perchè una classe con
+troppe dipendenze è una BAD PRACTIES. Dunque ci saranno dei casi in cui i questo metodo sarà uttile perchè saranno inutili
+i costruttori ma è sempre preferibile fare un costruttore quindi Constructor Injection.
+
+PRYMARY & QUALIFIER
+PRYMARY come abbiamo già visto è un'annotazione che serve per rendere di default un Bean nel caso di ambiguità varie, che
+permetteràa di selezionare quel bean/component come "prescelto".
+QUALIFIER invece fa una cosa molto simile am permette di selezionare tramite nome facciamo un esempio:
+
+@Component("creditCardGateaway")
+public class CreditCardGateaway implements PaymentGateaway{ // implementazione specifica di una carta di credito
+}
+
+@Component("paypalGateaway")
+public class PaypalGateaway implements PaymentGateaway{ // implementazione specifica di paypal
+}
+
+// CLASSE OrderService
+
+public class OrderService{
+ private final PaymentGateaway paymentGateaway;
+
+ @Autowired
+ public OrderService(@Qualifier("creditCardGateway") PaymentGateaway paymentGateaway) {
+   this.paymentGateaway = paymentGateaway;
+ }
+}
+
+Quindi cosa succede qua quando creo due component e, se voglio, gli assegno un nome, poi metto nei parametri del
+costruttore di OrderService l'annotazione @Qualifier con il nome e così gliela posso innietare.
+
+COMMANDLINERUNNER
+questa è una classe speciale che sfrutta le cose che abbiamo appena visto, che è utile in quei casi in cui abbiamo
+bisogno di eseguire determinate logiche prima di avviare il main, ad esempio se volessimo riempire il DATABASE prima di
+runnare il main il main viene eseguito prima e ci consente di fare una sorta di setup iniziale. questi runner devono
+hanno delle caratteristiche fondamentali, devono avere le annotazioni @Component e devono implementare l'interfaccia
+COMANDLINER, che ci farà fare l'@Override del metodo run. ada esempio:
+@Component
+public class MyCommandLineRunner implements CommandLineRunner {
+  @Override
+  public void run(String... args) throws Exception {
+  S.o.p("L'applicazione è stata avviata con successo!")
+  }
+}
+
+nel caso ci servisse posso avere anche più runner posso aggiungere l'ordine di running con l'annotazione @Order:
+
+@Component
+@Order(1)
+public class MyCommandLineRunner implements CommandLineRunner {
+  @Override
+  public void r.........
+
+@Component
+@Order(2)
+public class MyCommandLineRunner implements CommandLineRunner {
+  @Override
+  public void r...............
+
+Oltretutto essendo dei Component è molto utile perchè si può implementare @Autowired con il faker ed essendo un component
+quando verrà creato il faker verrà injectato dentro di lui senza doverlo leggere dal contest con getBean() e tutta quella
+struttura
+
+RIASSUNTO LEZIONE 2:
+1. Configurazione e Gestione Resources
+Il passaggio dai progetti Java standard a Spring comporta l'abbandono del file persistence.xml in favore di una
+gestione più snella:
+Cartella resources: Contiene il file application.properties, utilizzato per memorizzare coppie chiave-valore (es. URL
+del database, username, password, API key).
+Annotazioni chiave:
+@PropertySource("application.properties"): Indica a Spring quale file caricare.
+@Value("${chiave}"): Permette di iniettare il valore di una proprietà direttamente in una variabile o in un parametro
+di un Bean.
+@SpringBootApplication:
+Include al suo interno @ComponentScan, che scansiona il progetto all'avvio per trovare e gestire automaticamente i componenti.
+2. Accoppiamento e Principi IoC/DI
+Spring promuove la scrittura di codice manutenibile e testabile attraverso due concetti fondamentali:
+Accoppiamento (Coupling)
+Tight Coupling (Forte): Le classi creano internamente le proprie dipendenze (es. new PayPalGateway()). Modificare una
+classe costringe a modificare tutte quelle collegate (effetto domino).
+Loose Coupling (Debole): Le classi dipendono da interfacce o astrazioni. Le dipendenze vengono fornite dall'esterno.
+Inversion of Control (IoC) e Dependency Injection (DI)
+IoC (Inversione del Controllo):
+Il framework (Spring) assume il controllo del ciclo di vita degli oggetti. Non è più il programmatore a istanziarli con new.
+DI (Dependency Injection): È la tecnica pratica con cui Spring "inietta" gli oggetti necessari (dipendenze) dentro le classi che li richiedono.
+3. Dichiarazione dei Bean:
+@Bean vs @ComponentEsistono due modi principali per far gestire un oggetto a Spring:
+@Component:
+Si mette sopra la classe. Spring la trova grazie alla scansione automatica e crea l'oggetto da solo. Si usa per le classi
+del tuo progetto (DAO, Service) che non richiedono personalizzazioni particolari. È una modalità "automatica".
+@Bean:
+Si mette sopra un metodo in una classe di configurazione. Qui sei tu a scrivere il new e decidere come configurare
+l'oggetto. È fondamentale per gestire librerie esterne (come Faker) o quando serve una logica complessa prima di
+restituire l'oggetto.
+4. Metodi di Iniezione e Risoluzione Ambiguità
+Spring può iniettare dipendenze in tre modi:
+Constructor Injection: Tramite il costruttore (consigliata, più sicura).
+Setter Injection: Tramite metodi setter (annotati con @Autowired).
+Field Injection: Direttamente sull'attributo della classe tramite @Autowired (rapida, ma meno pulita).
+Gestione dei conflitti
+Se esistono più Bean dello stesso tipo, Spring va in confusione. Si risolve con:
+@Primary: Segna un Bean come preferito in caso di ambiguità.
+@Qualifier("nomeBean"): Specifica esattamente quale Bean iniettare basandosi sul nome.
+5. CommandLineRunner
+È un'interfaccia speciale che permette di eseguire del codice subito dopo l'avvio dell'applicazione (es. per popolare
+il database o loggare un messaggio di successo).
+Deve essere annotata con @Component.
+Implementa il metodo run(String... args).
+Se ci sono più runner, si usa @Order(n) per stabilire la sequenza di esecuzione.
 
 
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 3 RIPASSO E TEST@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+SALTATO RECUPERARE POI TODO
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@LEZIONE 4@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -638,13 +731,18 @@ spring.datasource.password=1234
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=update
 dopodichè runniamo per vedere gli errori e dopo se non ci sono errori andremo a creare le entities come sempre,
-aggiungendo le varie annotazioniii  come @Entity, @Table etc. successivamente i classici attributi, con
+aggiungendo le varie annotazioniii  come @Entity, @Table successivamente i classici attributi, con
 @Id
-@GeneretedValue(strategy = GenerationType.IDENTITY) @Column(name = profile_img" nullable = false)
+@GeneretedValue(strategy = GenerationType.IDENTITY) // incrementazione automatice di un numero seriale
+@Column(name = profile_img" nullable = false) //non obbligatorio
 successivamente costruttori getter e setter e i toString in caso non volessimo il setter sull'id
-@Setter(AccessLevel.NONE) e lo stesso per il @Getter nella password. successivamente aggiungiamo una seconda classe con
- relazione ManyToOne di BlogPost  mettiamo tutti gli attributi costruttore, getter e setter dei tostring e runniamo
- dinuovo per vedere il DB. a questo punto serviranno i dao che saranno divisi in due parti grazie anche alle repository
+@Setter(AccessLevel.NONE) e lo stesso per il @Getter nella password. successivamente aggiungiamo una seconda classe "BlogPost" con
+relazione
+@ManyToOne
+@JoinColumn(name = "author_id")
+private User author
+di BlogPost  mettiamo tutti gli attributi costruttore, getter e setter dei tostring e runniamo
+dinuovo per vedere il DB. a questo punto serviranno i dao che saranno divisi in due parti grazie anche alle repository
 che si occuperà di tutti i metodi base per interagire con la tabella, invece per la tutela del codice come eccezioni
 ecceterà verrà utilizzata la classe service che si occupa di eseguire controlli eccezioni log, e anche service sarà un
 component ma con annotazione @Service quindi la struttura adesso sarà per ogni tabella un service e una repository che
