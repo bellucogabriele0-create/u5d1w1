@@ -882,12 +882,104 @@ public class UserService {
     }
 }
 
-Nel Service del Blog sara molto simile e
+Nel Service del Blog sara molto simile però con la differenza che nella save del User gli viene passato come parametro il
+newUUser e viene salvato, in realtà il metodo posso farlo anche in altri modi mettendo il nome, cognome, email, password
+nel senso che nella save del blog io potrei fare il metodo in questo modo:
+@Service
+@Slf4j
+public class BlogsService{
+
+ public void saveNewBlog(BlogPost newBlog){
+ in questo caso useremo un parametro solo che contiene già tutto, però questo vorrebbe dire che uno fuosri dalla save
+ dovrebbe andare a fare la findById dell'utente, passargliela al blog etc. come abbiamo fatto in UsersService
+ }
+  }
+
+oppure possiamo fare una cosa del genere:
+public class BlogsService{
+
+  private final UsersService usersService;
+  private final BlogsRepository blogsRepository;
+  @Autowired
+  public BlogsService (UsersService usersService, BlogsRepository blogsRepository) {
+   this.usersService = usersService;
+   this.blogsRepository = blogsRepository;
+  }
+
+ public void saveNewBlog(long UserId,String title, String content ){ // in questo caso gli viene passato l'id dello user
+che si cercherà lui, il titolo e il content e farà tutto lui, però se devo fare una findById dell'utente io avrò bisogno
+dello usersService e dei BlogsRepository da aggiungere sopra il metodo public void saveNewBlog, perchè è dalì che andremmo
+a prendere i dati che ci servono e poi creiamo il costruttore con l'@Autowird.
+1. A questo punto il primo passo sarà cercare l'autore con
+User author = this.usersService.findById(userId); // questo sarà in grado di gestire anche gli errori perchè viene passato da usersService
+2. a questo punto se troviamo l'utente creiamo l'oggetto BlogPost
+BlogPost newBlog = new BlogPost(title, content, author);
+3. successivamentefaccio la save
+this.blogsRepository.save(newBlog);
+4.un semplice log di avvenuto salvataggio
+log.info("il blog è stato salvato correttamente" + newBlog.getTtle());
+ }
+}
+
+Successivamente nel runner possiamo aggiungere l'attributo e nel costruttore il blogsService così:
+
+private final BlogsServeìice blogsService;
+
+public Runner(UsersService, BlogsService blogsService) {
+   this.usersService = usersService;
+   this.blogsService = blogsService;
+}
+@Override
+public void run (String... args) throws Exception{
+ Faker faker = new Faker(Locale.Italy);
+ User user = new User(faker.name().firstname(), faker.name().lastname(), faker.email(), faker.password())
+
+ try{
+  //usersService.findByIdAndUpdate(1, new User("Aldo""baglio""Aldo@gmail.com""1234Password)
+  e ora sarà possibile aggiungere anche un nuvo blog così:
+    blogsService.saveNewBlog(1, "il titolo è Spring", "e spring è bello fa parte del content")
+ }
+ catch(NotFoundException ex ){
+ log.error(ex.getMessage());}
+ }
+}
+
+e possiamo mano a mano aggiungere anche tutti gli altri metodi nel service e testarli come abbiamo appena fatto come ad
+esempio findAll:
+
+public List<BlogPost> findAll() {
+  return this.blogsRepository.findAll()
+}
 
 
+quindi il service del blog alla fine sarà una cosa del genere
+
+@Service
+@Slf4j
+public class BlogsService{
+
+  private final UsersService usersService;
+  private final BlogsRepository blogsRepository;
+  @Autowired
+  public BlogsService (UsersService usersService, BlogsRepository blogsRepository) {
+   this.usersService = usersService;
+   this.blogsRepository = blogsRepository;
+  }
+ public void saveNewBlog(long UserId,String title, String content ){
+  User author = this.usersService.findById(userId);
+  BlogPost newBlog = new BlogPost(title, content, author);
+  this.blogsRepository.save(newBlog);
+  log.info("il blog è stato salvato correttamente" + newBlog.getTtle());
+
+}
+
+ public List<BlogPost> findAll() {
+  return this.blogsRepository.findAll()
+ }
+}
 
 
-
+QUERIES
 
 
 
