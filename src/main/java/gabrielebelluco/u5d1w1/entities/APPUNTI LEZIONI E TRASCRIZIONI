@@ -764,6 +764,7 @@ per un metodo saveUser iniziamo aggiungendo il costruttore con l'@Autowired per 
 successivamente si possono fare diversi passaggi come
 1 contolla che l'email non sia già in uso
 // TODO: si farà più avanti il check
+if(usersRepository.existsByEmail(newUser.getEmail())) throw new ValidationException("Email" + newUser.getEmail() + " già esistente")
 2 effettua altri controlli di validazioni sui dati inseriti
 if (newUser.getName().length() < 2) throw new validationException ("il nome non può essere più corto di 2 caratteri")
 3 aggiungi ulteriori dati server genereted
@@ -978,35 +979,109 @@ public class BlogsService{
  }
 }
 
-
 QUERIES
+per quanto riguarda le queries abbiamo diverse possibilità come il jql che abbiamo già visto funziona anche qua ma non
+è l'unica possibilità perchè le due possibilità sono QUERY DERIVATE e QUERY CUSTOM CON JPQL o CON SQL NATIVO.
+Nelle query derivate si scriverà molto meno codice ma non coprono tutti i casi quindi a volte sarà necessario farle custom
+il posto adatto dove fare le query è nella REPOSITORY.
+Per ripeterci le JPQL sono quelle SQL "ad oggetti" dove al posto di fare "SELECT * FROM users" nel jpql farò
+"SELECT u FROM user u" con l'utilizzo della classe, oppure quando c'è di mezzo l'ereditarietà JPQL mi darà la possibilità
+di scrivere le query in una sola maniera e far si che sia poi JPA a scegliere come convertirle in base a com'è la
+strategia di ereditarietà che abbiamo deciso. e queste che abbiamo appena visto erano le QUERY CUSTOM CON JPQL o CON SQL NATIVO
+QUERY DERIVATE
+questo è il metodo più semplice per fare query con spring perchè si creano dei metodi in una certa maniera che grazie solo
+al nome del metodo deriva la query. ad esempio findBy<NomeProprietà> come findBy<Name> o findBy<Surname> o findBy<Email>
+questo è già come aver fatto la query di selezione ad esempio:
+
+@Repository
+public interface UsersRepository extends JpaRepository<User, Long>{
+ List<User> findBySurname(String surname);
+ questa è la queri e corrisponderà a "SELECT * FROM users WHERE surname = :surname"
+ ma inoltre possiamo usare anche operatori logici come Or And Not così:
+ List<User> findByNameAndSurname(String name, String surname);
+ e questa corrisponde a "SELECT * FROM users WHERE name = :name AND surname = :surname"
+}
+ci sono anche altre cose molto interessanti oltre che agli operatori logici come "findByPrezzoLessThan(double prezzo)":
+che cercherà un entità con un prezzo inferiore di un valore, ci sono anche GraterThan, GraterThanEqual e LessThanEqual,
+ma abbiamo anche gli OrderBy tipo findByCategoriaOrderByPrezzoAsc(Categoria categoria): che cerca entità di una determinata
+categoria e le ordina per prezzo in ordine ascendente,
+oppure abbiamo anche  findByFirstByCategoria: che mi torna solo il primo risultato della lista
+oppure abbiamo anche  findByNomeNot: che mi torna i nomi che non si chiamano in un determinato modo
+oppure abbiamo anche  findByNomeLike: che mi torna i nomi che contengono una determinata parte
+oppure abbiamo anche  findByNomeIgnoreCase: che mi torna i nomi indipendentemente da maiuscole o minuscole
+etc etc
+ma ci sono dei contro perchè come abbiamo già detto non coprono tutti casi che ci servono, anche in casi particolari come
+l'extract from non c'è quindi tocca customizzare
+
+QUINDI ALLA FINE LA REPOSITORY SARà UNA COSA DEL GENERE
+@Repository
+public interface UsersRepository extends JpaRepository<User, Long> {
+ List<User> findBySurname(String surname);
+  List<User> findByNameAndSurname(String name, String surname);
+}
 
 
+ e poi nel USERSERVICE lo possiamo riportare con il nome :
 
+public List<User> filterBySurname(String surname) {
+  return usersRepository.findBySurname(suname)
+}
+public List<User> filterByNameAndSurname(String name, String surname) {
+  return usersRepository.findByNameAndSurname(name, surname)
+}
+public List<User> filterByNameStartsWith(String partialName) {
+  return usersRepository.findByNameStartsWithIgnoreCase(partialName)
+}
 
+e poi nel RUNNER LO POSSIAMO USARE COSì:
 
+usersService.filterBySurname("Baglio").forEach(S.o::println);
+E STAMPERà LA LISTA DI QUELLI TROVATI
 
+usersService.filterByNameAndSurname("Aldo", "Baglio").forEach(S.o::println);
+E STAMPERà LA LISTA DI QUELLI TROVATI
 
+usersService.filterByNameStartsWith("b").forEach(S.o::println);
+E STAMPERà LA LISTA DI QUELLI TROVATI
 
+ma abbiamo anche un'altro modo di fare le query nella repository che è con il boolean grazie a existsBy ad esempio:
 
+boolean existsByEmail(String email); che non mi torna ne una lista ne un'utente ma semplicemente true o false.
 
+ma abbiamo anche le native in due modi:
+@Query("SELECT u FROM User WHERE u.name = :name")
+List<User> filterByName(String name);
+oppure:
+@Query(nativeQuery = true, value= "SELECT u FROM User WHERE u.name = :name")
+List<User> filterByName(String name);
 
+quindi alla fine della fiera possiamo fare la "validazione" della mail del save con: Riga 766
 
+RIASSUNTO:
+Gemini said
+In questa lezione viene spiegata l'integrazione tra un'applicazione Spring Boot e un database PostgreSQL attraverso l'utilizzo di Spring Data JPA. Il processo inizia con la configurazione del progetto tramite Spring Initializr, aggiungendo le dipendenze necessarie come Lombok, Spring Data JPA e il driver di PostgreSQL. La connessione al database viene stabilita configurando il file delle proprietà dell'applicazione con i parametri relativi all'URL della sorgente dati, le credenziali di accesso e la strategia di Hibernate per l'aggiornamento automatico dello schema.
 
+La struttura del progetto segue il modello delle entità, dove le classi Java vengono mappate sulle tabelle del database
+utilizzando annotazioni specifiche come @Entity e @Table. All'interno delle classi si definisce la chiave primaria con
+@Id e se ne imposta la generazione automatica. Per gestire correttamente i dati e la sicurezza, si utilizzano le
+annotazioni di Lombok per generare costruttori, getter e setter, avendo cura di limitare l'accesso ai metodi di modifica
+per campi sensibili come l'ID o la password. Viene inoltre mostrata la gestione delle relazioni tra tabelle, ad esempio
+una relazione MANY-TO-ONE tra un post di un blog e il suo autore, definita tramite @ManyToOne e @JoinColumn.
 
+Il cuore dell'interazione con i dati è rappresentato dalle Repository e dai Service. Le Repository sono interfacce che
+estendono JpaRepository e forniscono automaticamente tutti i metodi per le operazioni CRUD di base. I Service, invece,
+fungono da intermediari logici tra le Repository e il resto dell'applicazione. All'interno dei Service vengono
+implementati i controlli di validazione, la gestione delle eccezioni personalizzate e i log delle operazioni. Ad esempio,
+prima di salvare un nuovo utente, il Service verifica la lunghezza del nome o l'unicità dell'email, lanciando eccezioni
+specifiche in caso di errore. I metodi del Service coprono tutte le necessità operative: la ricerca per ID con gestione
+degli Optional, il recupero di tutti i record, l'aggiornamento dei campi e la cancellazione.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Un aspetto fondamentale riguarda la possibilità di creare query personalizzate. Oltre ai metodi standard, è possibile
+definire le cosiddette "Query Derivate" semplicemente seguendo una convenzione di denominazione dei metodi
+nell'interfaccia Repository. Spring è in grado di interpretare nomi come findBySurname o findByNameAndSurname per
+generare automaticamente il codice SQL corrispondente. Esistono inoltre operatori per ricerche più complesse, come il
+filtraggio per valori inferiori o superiori, l'ordinamento e la ricerca di corrispondenze parziali ignorando le maiuscole.
+Quando le query derivate non sono sufficienti, si può ricorrere a JPQL o SQL nativo per una personalizzazione totale.
+Infine, l'utilizzo di un Runner consente di testare concretamente il funzionamento dell'applicazione, simulando
+l'inserimento di dati tramite librerie come Faker e verificando la corretta persistenza e manipolazione delle
+informazioni sul database.
